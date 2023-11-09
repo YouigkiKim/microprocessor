@@ -2,7 +2,7 @@ Microprocessor team2
 
 ## Project [Microprocessor of Things]
 
-2019035914 YoungkiKim WonJang Junhyeongchoi
+2019035914 YoungkiKim 2019023763 WonJang Junhyeongchoi
 
 ---
 프로젝트 사용센서
