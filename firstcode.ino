@@ -48,25 +48,3 @@ void loop() {
       digitalWrite(MOTOR_PIN, LOW); // 모터 끄기
     }
   }
-
-  // 조도센서 작업
-  if (currentMillis - previousMillisLight >= intervalLight) {
-    previousMillisLight = currentMillis;
-    // 조도센서에서 읽기 작업 수행
-    int sensorValueOutdoor = analogRead(photoresistorOutdoor);
-    int sensorValueIndoor = analogRead(photoresistorIndoor);
-
-    Serial.print("실외 조도센서 값: ");
-    Serial.println(sensorValueOutdoor);
-    Serial.print("실내 조도센서 값: ");
-    Serial.println(sensorValueIndoor);
-
-    if (sensorValueOutdoor < threshold) {
-      digitalWrite(ledPin, LOW); // 실외 조도가 어두우면 조명 끄기
-    } else {
-      // 임계값보다 밝을 때 실내 조도센서 값에 따라 LED 밝기 제어
-      int brightness = map(sensorValueIndoor, 0, 1023, 0, 255);
-      analogWrite(ledPin, brightness);
-    }
-  }
-}
