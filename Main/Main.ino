@@ -4,6 +4,7 @@
 #include <Wire.h>
 #include <LiquidCrystal_I2C.h>
 
+
 Servo windowServo;
 Servo airConditionerServo;  // 에어컨을 제어할 별도의 서보모터
 SoftwareSerial bluetooth(0, 1);  // RX, TX
@@ -19,8 +20,7 @@ int airConledPin = 12;             // 에어컨 내부 led 핀
 int ledPin = 13;                   // 방범 사이렌 조명 다이오드(LED)가 연결된 핀
 int lightBrightness = 0; // 조명의 현재 밝기 설정 (기본값: 0, 꺼짐)
 
-#define DHTPIN 3          // DHT 센서의 데이터 핀
-#define DHTTYPE DHT22     // DHT 센서의 타입 (DHT22 또는 DHT11)
+
 DHT dht(DHTPIN, DHTTYPE);
 
 LiquidCrystal_I2C lcd(0x27, 16, 2);  // I2C 주소 0x27에 연결된 16x2 LCD
