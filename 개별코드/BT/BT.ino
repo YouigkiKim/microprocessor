@@ -20,3 +20,8 @@ void loop() {
    
   }
 }
+
+
+//main 에서 뽑아온코드
+
+SoftwareSerial bluetooth(0, 1);  // RX, TX

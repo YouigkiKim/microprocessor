@@ -17,8 +17,6 @@ int VentmotorPin = 10;             // 환풍기 DC 모터가 연결된 핀
 int airConditionerMotorPin = 11;   // 에어컨 DC모터 핀
 int airConledPin = 12;             // 에어컨 내부 led 핀
 int ledPin = 13;                   // 방범 사이렌 조명 다이오드(LED)가 연결된 핀
-
-
 int lightBrightness = 0; // 조명의 현재 밝기 설정 (기본값: 0, 꺼짐)
 
 #define DHTPIN 3          // DHT 센서의 데이터 핀
