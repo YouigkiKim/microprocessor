@@ -1,0 +1,137 @@
+#include <Servo.h>
+#include <SoftwareSerial.h>
+#include <DHT.h>
+#include <Wire.h>
+#include <LiquidCrystal_I2C.h>
+
+Servo airConditionerServo;  // 에어컨을 제어할 별도의 서보모터
+int irSensorPin = 2;               // 적외선 센서의 핀
+int lightLEDPin = 5;               // 조명에 사용할 LED 핀
+int boilerLEDPin = A1; // 아날로그 핀 A1 사용
+
+int airConditionerServoPin = 9;    // 에어컨 서보모터 핀
+int VentmotorPin = 10;             // 환풍기 DC 모터가 연결된 핀
+int airConditionerMotorPin = 11;   // 에어컨 DC모터 핀
+int airConledPin = 12;             // 에어컨 내부 led 핀
+int ledPin = 13;                   // 방범 사이렌 조명 다이오드(LED)가 연결된 핀
+
+#define DHTPIN 3          // DHT 센서의 데이터 핀
+#define DHTTYPE DHT22     // DHT 센서의 타입 (DHT22 또는 DHT11)
+DHT dht(DHTPIN, DHTTYPE);
+
+LiquidCrystal_I2C lcd(0x27, 16, 2);  // I2C 주소 0x27에 연결된 16x2 LCD
+
+void setup() {
+  pinMode(airConledPin, OUTPUT); // 에어컨 내부 led 핀
+  pinMode(VentmotorPin, OUTPUT); // 환풍기 dc모터
+  pinMode(boilerLEDPin, OUTPUT); // 보일러 선 led
+  pinMode(lightLEDPin, OUTPUT);  // 조명 LED 핀 초기화
+  Serial.begin(9600);
+  lcd.begin(16, 2);
+  dht.begin();
+}
+
+void loop() {
+  float currentTemperature = dht.readTemperature();     //dht_22의 실내 온도 측정값
+  const float thresholdTemperature = 16.0;            // 일정 온도 수치
+  if (currentTemperature > thresholdTemperature) {  // 예시 온도가 24도 이상일 때 작동
+    // 온도가 일정 값보다 높으면 에어컨을 작동시킴
+    autoActivateAirConditioner();   // 블루투스와 무관한 에어컨 자동 작동 함수(dc모터,서보모터,led) 발동
+  }
+
+  displayTemperatureAndHumidity();  // 희망온도를 변수로 가지는 LCD 온습도계 함수 실행
+
+  float humidity = dht.readHumidity();    // dht_22의 실내 습도 측정값
+  if (humidity > 25) {              // 50을 기준으로 환풍기 작동함수, 환풍기 종료함수 실행
+    startVentMotor();                
+  } else {
+    stopVentMotor();
+  }
+}
+
+
+
+//환풍기 작동 함수
+void startVentMotor() {                    
+  analogWrite(VentmotorPin, 255);  // 환풍기 DC 모터를 최대 속도로 작동
+}
+
+//환풍기 종료 함수
+void stopVentMotor() {                  
+  analogWrite(VentmotorPin, 0);  // 환풍기 DC 모터를 정지
+}
+
+// LCD에 실내 온습도계, 희망온도 표현 함수
+void displayTemperatureAndHumidity() {             
+  float humidity = dht.readHumidity();
+  float temperature = dht.readTemperature();
+  float desiredTemperature = 28.0;
+  lcd.clear();
+  lcd.init();
+  lcd.backlight();
+  lcd.setCursor(0, 0);   //0행 실내온도
+  lcd.print("Temp: ");
+  lcd.print(temperature);
+  lcd.print(" C");
+
+  lcd.setCursor(0, 1);   //1행 실내습도
+  lcd.print("Humidity: ");
+  lcd.print(humidity);
+  lcd.print(" %");
+
+  lcd.setCursor(0, 2);   //2행 희망온도
+  lcd.print("Desired Temp: ");
+  lcd.print("28");
+  lcd.print(" C");
+
+  Serial.print("Temperature: ");
+  Serial.print(temperature);
+  Serial.print(" °C, Humidity: ");
+  Serial.print(humidity);
+  Serial.print(" %, Desired Temp: ");
+  Serial.print(desiredTemperature);
+  Serial.println(" °C");
+}
+
+// 보일러 선 LED 함수
+void setBoilerTemperature() {          
+  float desiredTemperature = 28.0;  // 스마트폰으로부터 희망 온도 읽기
+  float currentTemperature = dht.readTemperature();  // 현재 온도 측정
+
+  const int fadeSpeed = 5;  // 밝기를 변경하는 속도 (낮을수록 빠름)
+
+  if (desiredTemperature > currentTemperature) {
+    // 희망 온도가 현재 온도보다 높을 경우 LED를 설정
+    analogWrite(boilerLEDPin, 255);  // 최대 밝기로 설정
+    delay(5000);  // 최대 밝기에서 5초 대기
+
+    // LED의 밝기를 63까지 부드럽게 감소
+    for (int brightness = 255; brightness >= 63; brightness -= fadeSpeed) {
+      analogWrite(boilerLEDPin, brightness);  // PWM을 사용하여 LED의 밝기 설정
+      delay(100);  // 각 단계마다 일정 시간 동안 대기
+    }
+  } else {
+    // 희망 온도가 현재 온도보다 낮을 경우 LED를 끔
+    analogWrite(boilerLEDPin, 0);
+  }
+}
+
+
+
+
+// DHT-22의 온도 측정값에 따라서만 작동하는 에어컨 함수-->블루투스 배제
+void autoActivateAirConditioner() {
+ 
+  // 에어컨을 작동하는 코드 추가
+  analogWrite(airConditionerMotorPin, 255);  // DC모터를 최대 속도로 작동
+  delay(500);
+
+  digitalWrite(airConledPin, HIGH);
+
+  // 에어컨 작동을 표현하기 위해 서보모터를 작동시킴
+
+  airConditionerServo.attach(airConditionerServoPin);
+  airConditionerServo.write(90);
+  delay(500);
+  airConditionerServo.detach();
+}
