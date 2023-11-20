@@ -44,7 +44,7 @@ void loop() {
 
   float currentTemperature = dht.readTemperature();     //dht_22의 실내 온도 측정값
   const float thresholdTemperature = 16.0;            // 일정 온도 수치
-  if (currentTemperature > thresholdTemperature) {  // 예시 온도가 24도 이상일 때 작동
+  if (currentTemperature > thresholdTemperature) {  // 예시 온도_thresholdTemperature가 실내 온도_dht.readTemperature()보다 클 때 작동
     // 온도가 일정 값보다 높으면 에어컨을 작동시킴
     autoActivateAirConditioner();   // 블루투스와 무관한 에어컨 자동 작동 함수(dc모터,서보모터,led) 발동
   }
@@ -133,7 +133,7 @@ void setBoilerTemperature() {
 
 
   if (desiredTemperature > currentTemperature) {
-    // 희망 온도가 현재 온도보다 높을 경우 LED를 설정
+    // 희망 온도_desiredTemperature가 실내 온도_dht.readTemperature()보다 클 때 작동
     analogWrite(boilerLEDPin, 255);  // 최대 밝기로 설정
     delay(5000);  // 최대 밝기에서 5초 대기
 
