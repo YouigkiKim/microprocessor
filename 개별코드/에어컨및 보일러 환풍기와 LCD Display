@@ -50,10 +50,9 @@ void loop() {
   }
 
 
- 
+  setBoilerTemperature()   //보일러 자동 동작함수 실행
 
   displayTemperatureAndHumidity();  // 희망온도를 변수로 가지는 LCD 온습도계 함수 실행
-
 
   float humidity = dht.readHumidity();    // dht_22의 실내 습도 측정값
   if (humidity > 25) {              // 50을 기준으로 환풍기 작동함수, 환풍기 종료함수 실행
@@ -62,9 +61,6 @@ void loop() {
     stopVentMotor();
   }
 
-
-  
-  
 }
 
 
