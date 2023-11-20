@@ -39,6 +39,7 @@ void setup() {
   dht.begin();
 }
 
+int brightness; 
 void loop() {
 
 
@@ -48,9 +49,13 @@ void loop() {
     // 온도가 일정 값보다 높으면 에어컨을 작동시킴
     autoActivateAirConditioner();   // 블루투스와 무관한 에어컨 자동 작동 함수(dc모터,서보모터,led) 발동
   }
+  const float desiredTemperature = 28.0;  // 스마트폰으로부터 희망 온도 읽기
+  if (desiredTemperature > currentTemperature)
 
-
-  setBoilerTemperature()   //보일러 자동 동작함수 실행
+    setBoilerTemperature()   //보일러 자동 동작함수 실행
+  else {
+    // 희망 온도가 현재 온도보다 낮을 경우 LED를 끔
+    analogWrite(boilerLEDPin, 0);
 
   displayTemperatureAndHumidity();  // 희망온도를 변수로 가지는 LCD 온습도계 함수 실행
 
@@ -122,26 +127,17 @@ void displayTemperatureAndHumidity() {
 // 보일러 선 LED 함수
 int brightness;
 void setBoilerTemperature() {          
-  float desiredTemperature = 28.0;  // 스마트폰으로부터 희망 온도 읽기
-  float currentTemperature = dht.readTemperature();  // 현재 온도 측정
 
   const int fadeSpeed = 5;  // 밝기를 변경하는 속도 (낮을수록 빠름)
 
+  analogWrite(boilerLEDPin, 255);  // 최대 밝기로 설정
+  delay(5000);  // 최대 밝기에서 5초 대기
 
-  if (desiredTemperature > currentTemperature) {
-    // 희망 온도_desiredTemperature가 실내 온도_dht.readTemperature()보다 클 때 작동
-    analogWrite(boilerLEDPin, 255);  // 최대 밝기로 설정
-    delay(5000);  // 최대 밝기에서 5초 대기
-
-    // LED의 밝기를 63까지 부드럽게 감소
-    for (brightness = 255; brightness >= 63; brightness -= fadeSpeed) {
-      analogWrite(boilerLEDPin, brightness);
-      delay(100);
-    }
-  } else {
-    // 희망 온도가 현재 온도보다 낮을 경우 LED를 끔
-    analogWrite(boilerLEDPin, 0);
-  }
+  // LED의 밝기를 63까지 부드럽게 감소
+  for (brightness = 255; brightness >= 63; brightness -= fadeSpeed) {
+    analogWrite(boilerLEDPin, brightness);
+    delay(100);
+  }  
 }
 
 
