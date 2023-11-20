@@ -6,7 +6,7 @@
 Servo airConditionerServo;  // 에어컨을 제어할 별도의 서보모터
 int irSensorPin = 2;               // 적외선 센서의 핀
 int lightLEDPin = 5;               // 조명에 사용할 LED 핀
-int boilerLEDPin = A1; // 아날로그 핀 A1 사용
+int boilerLEDPin = 6 ;             // 보일러 선LED
 
 
 int airConditionerServoPin = 9;    // 에어컨 서보모터 핀
@@ -72,11 +72,13 @@ void loop() {
 //환풍기 작동 함수
 void startVentMotor() {                    
   analogWrite(VentmotorPin, 255);  // 환풍기 DC 모터를 최대 속도로 작동
+  delay(500);
 }
 
 //환풍기 종료 함수
 void stopVentMotor() {                  
   analogWrite(VentmotorPin, 0);  // 환풍기 DC 모터를 정지
+  delay(500);
 }
 
 
@@ -129,7 +131,7 @@ void setBoilerTemperature() {
 
   if (desiredTemperature > currentTemperature) {
     // 희망 온도가 현재 온도보다 높을 경우 LED를 설정
-    analogWrite(boilerLEDPin, 255);  // 최대 밝기로 설정
+    digitalWrite(boilerLEDPin, HIGH);  // 최대 밝기로 설정
     delay(5000);  // 최대 밝기에서 5초 대기
 
     // LED의 밝기를 63까지 부드럽게 감소
