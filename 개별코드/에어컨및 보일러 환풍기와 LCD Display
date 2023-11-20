@@ -5,8 +5,8 @@
 #include <LiquidCrystal_I2C.h>
 Servo airConditionerServo;  // 에어컨을 제어할 별도의 서보모터
 int irSensorPin = 2;               // 적외선 센서의 핀
-int lightLEDPin = 5;               // 조명에 사용할 LED 핀
-int boilerLEDPin = 6 ;             // 보일러 선LED
+int lightLEDPin = 5;               // 조명에 사용할 LED 핀 _PWM핀 사용해야하므로  ~가 있는 5번핀 사용
+int boilerLEDPin = 6 ;             // 보일러 선LED        _PWM핀 사용해야하므로    ~가 있는 6번핀 사용
 
 
 int airConditionerServoPin = 9;    // 에어컨 서보모터 핀
@@ -122,20 +122,23 @@ void displayTemperatureAndHumidity() {
   Serial.println(" °C");
 }
 
+
 // 보일러 선 LED 함수
+int brightness;
 void setBoilerTemperature() {          
   float desiredTemperature = 28.0;  // 스마트폰으로부터 희망 온도 읽기
   float currentTemperature = dht.readTemperature();  // 현재 온도 측정
 
   const int fadeSpeed = 5;  // 밝기를 변경하는 속도 (낮을수록 빠름)
 
+
   if (desiredTemperature > currentTemperature) {
     // 희망 온도가 현재 온도보다 높을 경우 LED를 설정
-    digitalWrite(boilerLEDPin, HIGH);  // 최대 밝기로 설정
+    analogWrite(boilerLEDPin, 255);  // 최대 밝기로 설정
     delay(5000);  // 최대 밝기에서 5초 대기
 
     // LED의 밝기를 63까지 부드럽게 감소
-    for (int brightness = 255; brightness >= 63; brightness -= fadeSpeed) {
+    for (brightness = 255; brightness >= 63; brightness--) {
       analogWrite(boilerLEDPin, brightness);  // PWM을 사용하여 LED의 밝기 설정
       delay(100);  // 각 단계마다 일정 시간 동안 대기
     }
@@ -144,7 +147,26 @@ void setBoilerTemperature() {
     analogWrite(boilerLEDPin, 0);
   }
 }
+int i; 
+ void loop(){
 
+   for(i = 0; i < 256; i++){
+
+      analogWrite(3, i);
+
+      delay(5);
+
+   }
+
+  for(i = 255; i >= 0; i--){
+
+      analogWrite(3, i);
+
+      delay(5);
+
+   }
+
+ }
 
 
 
