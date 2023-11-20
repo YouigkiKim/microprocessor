@@ -134,9 +134,9 @@ void setBoilerTemperature() {
     delay(5000);  // 최대 밝기에서 5초 대기
 
     // LED의 밝기를 63까지 부드럽게 감소
-    for (brightness = 255; brightness >= 63; brightness--) {
-      analogWrite(boilerLEDPin, brightness);  // PWM을 사용하여 LED의 밝기 설정
-      delay(100);  // 각 단계마다 일정 시간 동안 대기
+    for (brightness = 255; brightness >= 63; brightness -= fadeSpeed) {
+      analogWrite(boilerLEDPin, brightness);
+      delay(100);
     }
   } else {
     // 희망 온도가 현재 온도보다 낮을 경우 LED를 끔
