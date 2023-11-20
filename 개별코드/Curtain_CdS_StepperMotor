@@ -1,6 +1,6 @@
 #include <Stepper.h>
-#define STEPPERREV 2048
 
+#define STEPPERREV 2048
 #define Cds_Photoresistor_PIN A0
 
 const uint8_t pin_in1 = 8;
@@ -12,18 +12,27 @@ uint8_t rpm = 8;
 
 Stepper myStepper(STEPPERREV, pin_in1, pin_in2, pin_in3, pin_in4);
 
-void setup(){
-  myStepper.setSpeed(rpm)
+void setup() {
+  myStepper.setSpeed(rpm);
   Serial.begin(9600);
 }
 
-void loop(){
+void Curtain() {
   uint16_t aValue = analogRead(Cds_Photoresistor_PIN);
   Serial.println(aValue);
   delay(100);
-  int numSteps = STEPPERREV;
-  myStepper.step(numSteps);
-  delay(1000);
-  myStepper.step(-numSteps);
-  delay(1000);
+
+  if (aValue > 512) {
+    // 정방향으로 3초 동안 회전
+    myStepper.step(STEPPERREV);
+    delay(3000);
+  } else {
+    // 역방향으로 3초 동안 회전
+    myStepper.step(-STEPPERREV);
+    delay(3000);
+  }
+}
+
+void loop() {
+  Curtain();
 }
