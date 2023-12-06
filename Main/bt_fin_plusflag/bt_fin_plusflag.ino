@@ -68,7 +68,7 @@ void setup() {
   dht.begin();
 }
 
-void loop() {
+void loop(){
   // 시리얼 모니터로부터 데이터를 읽어서 Bluetooth Serial로 전송
   float humidity = dht.readHumidity();    // dht_22의 실내 습도 측정값
   float currentTemperature = dht.readTemperature();     //dht_22의 실내 온도 측정값
@@ -93,10 +93,10 @@ void loop() {
       while(!BTSerial.available()); // polling방식으로 두번째 데이터를 기다림
       data = BTSerial.read();
 
-      if(BTdata == 'on'){
+      if(data == '1'){
         Security = SecurityOn;
       }
-      else if(BTdata == 'off'){
+      else if(data == '0'){
         Security = SecurityOff;
       }
     }
@@ -121,7 +121,6 @@ void loop() {
         analogWrite(VentmotorPin, 0);
         int ventflag = 0;
       }
-      
     }
 
     // 스마트폰 신호가 'c'일 경우 (window 제어)
@@ -246,7 +245,7 @@ void loop() {
   }
 
   //환풍기 제어
-  if (ventflag = 1 ) {
+  if (ventflag == 1 ) {
     if (humidity > 70) { 
       startVentMotor();                 
     } 
@@ -256,7 +255,7 @@ void loop() {
  }
 
   //온도조절
-  if (tempflag = 1) {
+  if (tempflag == 1) {
     if (desiredTemperature > currentTemperature) {
       setBoilerTemperature(desiredTemperature, currentTemperature);
     }
@@ -265,7 +264,7 @@ void loop() {
     }
   }
   //커튼제어
-  if (curtainflag = 1) {
+  if (curtainflag == 1) {
     Curtain();
   }
 }
@@ -291,7 +290,7 @@ void Curtain() {
 //보일러 제어 함수
 void setBoilerTemperature(float desiredTemperature, float currentTemperature){        
   float diffTemp = desiredTemperature - currentTemperature;
-  float fadeSpeed = map(abs(diffTemp), 0, 10, 6, 1); // diffTemp에 따라 fadeSpeed 동적으로 계산
+  float fadeSpeed = map(abs(diffTemp), 0, 10, 6, 1); // diffTemp에 따라 fadeSpeed동적으로 계산
 
   int brightness = 255; // 초기 밝기 값을 255로 설정
   analogWrite(boilerLEDPin, brightness);  // 최대 밝기로 설정
@@ -311,6 +310,7 @@ void setBoilerTemperature(float desiredTemperature, float currentTemperature){
   if (brightness < 32){
     analogWrite(boilerLEDPin, 31);  // LED의 밝기를 63으로 유지
   }
+
 }
 
 //환풍기 작동 함수
