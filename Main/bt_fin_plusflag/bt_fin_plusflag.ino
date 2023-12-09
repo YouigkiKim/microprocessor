@@ -25,17 +25,17 @@ int boilerLEDPin = 6;              // 보일러 선 LED가 연결된 핀
 int windowServoPin = 7             // 창문 여닫이 서보모터가 연결된 핀
 int buzzerPin = 8;                 // 피에조 부저가 연결된 핀
 int airConditionerServoPin = 9;    // 에어컨 서보모터 핀
-int VentmotorPin = 10;             // 환풍기 DC 모터가 연결된 핀
+int VentmotorPin = 10;           // 환풍기 DC 모터가 연결된 핀
 
 int airConledPin = 12;             // 에어컨 내부 led 핀
 
 //창문상태지정 True=닫힘 False=열림
-bool WindowClose = true;;
+bool WindowClose = true;
 bool WindowAuto = true;
 bool WindowState = WindowClose;           //창문상태지정 True=닫힘 False=열림
 bool WindowState = WindowClose; 
 //창문상태지정 True=닫힘 False=열림
-bool WindowClose = true;;
+bool WindowClose = true;
 bool WindowAuto = true;
 bool WindowState = WindowClose;           //창문상태지정 True=닫힘 False=열림
 bool WindowState = WindowClose; 
@@ -225,6 +225,7 @@ void loop(){
         startTime = millis();
         bool SecureFlag = true;
       }
+
 
       unsigned long currentTime = millis();
 
