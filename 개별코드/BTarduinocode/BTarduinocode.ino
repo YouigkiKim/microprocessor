@@ -19,12 +19,11 @@ int windowServoPin = 7             // 창문 여닫이 서보모터가 연결된
 int buzzerPin = 8;                 // 피에조 부저가 연결된 핀
 int airConditionerServoPin = 9;    // 에어컨 서보모터 핀
 int VentmotorPin = 10;             // 환풍기 DC 모터가 연결된 핀
-
 int airConledPin = 12;             // 에어컨 내부 led 핀
 
 
 //창문상태지정 True=닫힘 False=열림
-bool WindowClose = true;;
+bool WindowClose = true;
 bool WindowAuto = true;
 bool WindowState = WindowClose;           //창문상태지정 True=닫힘 False=열림
 unsigned long startTime;
@@ -42,8 +41,10 @@ Stepper myStepper(STEPPERREV, pin_in1, pin_in2);
 LiquidCrystal_I2C lcd(0x27, 16, 2);  // I2C 주소 0x27에 연결된 16x2 LCD
 
 ISR(USART_RX_vect){
+
   char data;
   data = BTserial.read();
+
   if(data == 'a'){Security = SecurityOn;}
   else if(data == 'b'){Security = SecurityOff;}
   //환풍기 AUTO ON OFF
@@ -79,17 +80,18 @@ ISR(USART_RX_vect){
     analogWrite(boilerLEDPin, 0);  //보일러 강제종료
     int tempflag = 0;
   }
-  else if(data == 'k'){}
-  else if(data == 'l'){}
+  else if(data == 'k'){}//에어컨 터보
+  else if(data == 'l'){}//보일러 터보
   else if(data == 'm'){}
   else if(data == 'n'){}
   else if(data == 'o'){}
-  else if(data == '0'){}
-  else if(data == '1'){}
-  else if(data == '2'){}
-  else if(data == '3'){}
-  else if(data == '4'){}
-  else if(data == '5'){}
+  //조명
+  else if(data == '0'){}//off
+  else if(data == '1'){}//12.5%
+  else if(data == '2'){}//25%
+  else if(data == '3'){}//50%
+  else if(data == '4'){}//75%
+  else if(data == '5'){}//100%
 }
 
 void setup() {
