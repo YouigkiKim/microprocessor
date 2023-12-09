@@ -21,7 +21,6 @@ int airConditionerServoPin = 9;    // 에어컨 서보모터 핀
 int VentmotorPin = 10;             // 환풍기 DC 모터가 연결된 핀
 int airConledPin = 12;             // 에어컨 내부 led 핀
 
-
 //창문상태지정 True=닫힘 False=열림
 bool WindowClose = true;
 bool WindowAuto = true;
@@ -85,13 +84,14 @@ ISR(USART_RX_vect){
   else if(data == 'm'){}
   else if(data == 'n'){}
   else if(data == 'o'){}
+  
   //조명
-  else if(data == '0'){}//off
-  else if(data == '1'){}//12.5%
-  else if(data == '2'){}//25%
-  else if(data == '3'){}//50%
-  else if(data == '4'){}//75%
-  else if(data == '5'){}//100%
+  else if(data == '0'){analogWrite(lightLEDPin,LOW)}//off
+  else if(data == '1'){analogWrite(lightLEDPin,32)}//off
+  else if(data == '2'){analogWrite(lightLEDPin,64)}//off
+  else if(data == '3'){analogWrite(lightLEDPin,128)}//off
+  else if(data == '4'){analogWrite(lightLEDPin,196)}//off
+  else if(data == '5'){analogWrite(lightLEDPin,255)}//off
 }
 
 void setup() {
@@ -111,7 +111,6 @@ void setup() {
 
 
 void loop() {
-  // put your main code here, to run repeatedly:
 
 }
 
