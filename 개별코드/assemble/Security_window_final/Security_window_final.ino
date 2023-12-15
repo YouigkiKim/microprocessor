@@ -106,7 +106,6 @@ void loop(){
 
 }
 
-
 //창문 닫기 함수
 void closeWindow() {                      
   

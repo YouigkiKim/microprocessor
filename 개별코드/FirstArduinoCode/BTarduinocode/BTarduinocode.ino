@@ -158,7 +158,6 @@ void SoftwareInterrupt(){
   char data;
   data = UDR0;
 
-
   if(data == 'a'){Security = true;}
   else if(data == 'b'){Security = false;}
   //환풍기 AUTO ON OFF

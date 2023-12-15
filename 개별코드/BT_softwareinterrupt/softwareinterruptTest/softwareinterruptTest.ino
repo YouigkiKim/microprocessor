@@ -8,6 +8,8 @@ void setup() {
   BTserial.begin(9600);
   attachInterrupt(digitalPinToInterrupt(2),SoftwareISR,FALLING);
 }
+
+
 void loop() {
   // put your main code here, to run repeatedly:
   if(Serial.available()){
@@ -16,9 +18,6 @@ void loop() {
   if(BTserial.available()){
     Serial.print(BTserial.read());
   }
-
-  Serial.println(millis());
-  delay(1000);
 }
 
 void SoftwareISR(){
