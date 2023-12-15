@@ -110,6 +110,9 @@ void SoftwareISR(){
     else if(data == '3'){analogWrite(lightLEDPin,128);}//off
     else if(data == '4'){analogWrite(lightLEDPin,196);}//off
     else if(data == '5'){analogWrite(lightLEDPin,255);}//off
+    else if(data == 'z'){
+      Tempflag =1;
+    }
     else if(Serial.find(",")){
       float state[3];
       state[0] = Serial.parseFloat();

@@ -87,8 +87,8 @@ void loop(){
       ventState= true;
     }
     else {
-        analogWrite(VentmotorPin, 0);  // 환풍기 DC 모터를 정지
-        ventState= false;
+      analogWrite(VentmotorPin, 0);  // 환풍기 DC 모터를 정지
+      ventState= false;
     }
   }
 
@@ -163,7 +163,7 @@ void SoftwareISR(){
       closeWindow();
     }
     else if(data == 'h'){
-      int tempflag = 1;
+      tempflag = 1;
       Serial.print(h);
     }
   //   else if(data == 'i'){
@@ -193,7 +193,16 @@ void SoftwareISR(){
   //   else if(data == '5'){analogWrite(lightLEDPin,255);}//off
   //}
     else if(Serial.find(".")){
-      desiredTemperature = toFloat();
+      desiredTemperature = toFloat(data);
+      Serial.println(desireTemperature);
+      Tempflag = 1;
+      Serial.print("z");
+    }
+    else if(data == 'x'){
+      BTserial.print(currentTemperature);
+      BTserial.println("'C");
+      BTserial.print(humidity);
+      BTserial.println("%");
     }
     else{
       Serial.print(data);
