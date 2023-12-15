@@ -1,5 +1,4 @@
 #include <SoftwareSerial.h>
-#include <SoftwareSerial.h>
 #include <DHT.h>
 #include <Wire.h>
 #include <LiquidCrystal_I2C.h>
@@ -17,13 +16,14 @@ SoftwareSerial BTserial(2,3);
 int boilerLEDPin = 6;              // 보일러 선 LED가 연결된 핀
 int VentmotorPin = 10;             // 환풍기 DC 모터가 연결된 핀
 float currentTemperature;
+float updateTemp;
 int brightness; //보일러LED 밝기 변수 선언
 bool ventState;
 bool ventflag = 0; 
-bool tempflag = 0; 
 LiquidCrystal_I2C lcd(0x27, 16, 2);  // I2C 주소 0x27에 연결된 16x2 LCD
 float desiredTemperature;  // 추가: desiredTemperature 변수 선언
 float humidity;  // 추가: humidity 변수 선언
+bool Tempflag;
 
 //창문변수들
 //창문상태
@@ -39,6 +39,7 @@ unsigned long startTimelight;
 unsigned long actstartTime;
 unsigned long alarmcurrent;
 unsigned long currentTime;
+unsigned long exTF;
 //핀설정
 int windowServoPin = 7;             // 창문 여닫이 서보모터가 연결된 핀
 int buzzerPin = 8;                 // 피에조 부저가 연결된 핀
@@ -61,23 +62,23 @@ void setup(){
   lcd.backlight();
   dht.begin();
   attachInterrupt(digitalPinToInterrupt(2),SoftwareISR,FALLING);
+  attachInterrupt(digitalPinToInterrupt(0),SoftwareISRRx,FALLING);
 }
 
 void loop(){
   float humidity = dht.readHumidity();    
   float currentTemperature = dht.readTemperature();     
   
-  //두번째 아두이노로 온습도 전송
-  Serial.print(currentTemperature);
-  Serial.print(",");
-  Serial.println(humidity);
-   
-  //온도값 받아오는 함수 필요
-  float desiredTemperature = 44;
-
+  //두번째 아두이노로 온습도 희망온도 전송 1초마다
+  if(exTF> millis()-1000){
+    Serial.print(currentTemperature);
+    Serial.print(",");
+    Serial.print(humidity);
+    Serial.print(",");
+    Serial.println(desiredTemperature);
+  }
   //LCD온습도 출력
   displayTemperatureAndHumidity(currentTemperature,humidity);
-
 
   //환풍기제어
   if (ventflag == 1 ) {
@@ -103,15 +104,15 @@ void loop(){
       unsigned long currentTime = millis();
       if(SecureFlag == true){
         if(currentTime - 5000 > startTime){
-            if(AlarmFlag == 0){
-              actstartTime = millis();
-              AlarmFlag = true;
-              alarmStart = millis();  // 현재 시간 기록
-            } 
-            if(AlarmFlag == true){
-              alarmcurrent = millis();
-              activateAlarm();  // 알람작동
-            }
+          if(AlarmFlag == 0){
+            actstartTime = millis();
+            AlarmFlag = true;
+            alarmStart = millis();  // 현재 시간 기록
+          } 
+          if(AlarmFlag == true){
+            alarmcurrent = millis();
+            activateAlarm();  // 알람작동
+          }
         }
         else if(currentTime < startTime + 500 ){
           lightAlarm();
@@ -130,9 +131,17 @@ void loop(){
   }
 }
 
+void SoftwareISRRx(){
+  char data;
+  while(BTserial.available()){
+    data = BTserial.read();
+  }
+  updateTemp = data.toFloat();
+}
 
 void SoftwareISR(){
   while(BTserial.available()){
+
     char data = BTserial.read();
 
     if(data == 'a'){Security = true;}
@@ -153,11 +162,10 @@ void SoftwareISR(){
     else if(data == 'g'){
       closeWindow();
     }
-
-  //2번아두이노
-  //   else if(data == 'h'){
-  //     int tempflag = 1;
-  //   }
+    else if(data == 'h'){
+      int tempflag = 1;
+      Serial.print(h);
+    }
   //   else if(data == 'i'){
   //     digitalWrite(airConledPin, LOW);
   //     airConditionerServo.attach(airConditionerServoPin);
@@ -184,6 +192,9 @@ void SoftwareISR(){
   //   else if(data == '4'){analogWrite(lightLEDPin,196);}//off
   //   else if(data == '5'){analogWrite(lightLEDPin,255);}//off
   //}
+    else if(Serial.find(".")){
+      desiredTemperature = toFloat();
+    }
     else{
       Serial.print(data);
     }
@@ -192,8 +203,14 @@ void SoftwareISR(){
 
 //LCD와 시리얼 모니터에 현재 온습도 표현 함수
 void displayTemperatureAndHumidity(float currentTemperature,float humidity ){
-  lcd.setCursor(0, 0);   //0행 실내온도
+  lcd.setCursor(0, 0);//0행 실내온도
   lcd.print("Temp: ");
+  if(Tempflag == True){
+    lcd.print(updateTemp);
+  }
+  else{
+    lcd.print(currentTemp);
+  }
   lcd.print(currentTemperature);
   lcd.print(" C");
   Serial.println(" Check lcd");

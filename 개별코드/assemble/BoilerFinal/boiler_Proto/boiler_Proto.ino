@@ -91,7 +91,6 @@ float setBoilerTemperature(float desiredTemp, float currentTemperature, float St
   Serial.print("updateTemp: ");
   Serial.println(updatetemp);
   return updatetemp;
-
 }
 
 // void boilerstart(float updateTemp){

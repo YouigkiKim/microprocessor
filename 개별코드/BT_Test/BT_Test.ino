@@ -9,19 +9,19 @@ void setup() {
 }
 
 void loop() {
-
   if(BTserial.available()){
-    Serial.write(BTserial.read());
+
   }
 
   if( Serial.available() ){
     BTserial.write( Serial.read());
+    
   }
-
+  Serial.write(BTserial.read());
   int T = 20;
   int H = 22;
-  String data = String(T) + "," + String(H);
-  BTserial.println(data);
+  String data = String(T) + "a" + String(H);
+  BTserial.print(data);
   delay(1000);
 }
 

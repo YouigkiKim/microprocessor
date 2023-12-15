@@ -11,7 +11,6 @@
 DHT dht(DHTPIN, DHTTYPE);
 Servo airConditionerServo;
 unsigned long startTime = 0; // 시작 시간 저장 변수
-
 bool ventState;
 
 SoftwareSerial BTSerial(2,3); // RX, TX
