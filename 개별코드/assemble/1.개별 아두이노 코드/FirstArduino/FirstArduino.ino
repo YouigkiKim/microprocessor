@@ -41,7 +41,7 @@ unsigned long alarmcurrent;
 unsigned long currentTime;
 unsigned long exTF;
 //핀설정
-int windowServoPin = 7;             // 창문 여닫이 서보모터가 연결된 핀
+int windowServoPin = 9;             // 창문 여닫이 서보모터가 연결된 핀
 int buzzerPin = 8;                 // 피에조 부저가 연결된 핀
 int irSensorValue; // irSensorValue 변수 선언 
 //방범상태
@@ -253,7 +253,8 @@ void lightAlarm(){
 
 //창문 열기 함수
 void openWindow(){
-  windowServo.attach(7);
+  windowServo.attach(9);
+  windowServo.write(90);
   delay(1000); 
   detach();
   windowServo.WindowState= false;
@@ -261,7 +262,7 @@ void openWindow(){
 
 //창문 닫기 함수
 void closeWindow(){
-  windowServo.attach(7);
+  windowServo.attach(9);
   windowServo.write(0);  // 닫힌 위치에 해당하는 각도
   delay(1000);
   windowServo.detach();
