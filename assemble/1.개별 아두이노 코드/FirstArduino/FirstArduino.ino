@@ -6,21 +6,28 @@
 #include <Servo.h>
 
 #define irSensorPin A2               // 적외선 센서의 핀
+#define BTRx 2
+#define BTTx 3
 #define DHTPIN 4          // DHT 센서의 데이터 핀
+#define boilerLEDPin 6
+#define buzzerPin 8
+#define windowServoPin = 9
+#define VentmotorPin 10
+#define ASRx 11
+#define ASTx 12
 #define DHTTYPE DHT22     // DHT 센서의 타입 (DHT22 또는 DHT11)
 
 DHT dht(DHTPIN, DHTTYPE);
 Servo windowServo;
-SoftwareSerial BTserial(2,3);
+SoftwareSerial BTserial(BTRx,BTTx);
+SoftwareSerial AS(ASRx,ASTx);
+LiquidCrystal_I2C lcd(0x27, 16, 2);  // I2C 주소 0x27에 연결된 16x2 LCD
 
-int boilerLEDPin = 6;              // 보일러 선 LED가 연결된 핀
-int VentmotorPin = 10;             // 환풍기 DC 모터가 연결된 핀
 float currentTemperature;
 float updateTemp;
 int brightness; //보일러LED 밝기 변수 선언
 bool ventState;
 bool ventflag = 0; 
-LiquidCrystal_I2C lcd(0x27, 16, 2);  // I2C 주소 0x27에 연결된 16x2 LCD
 float desiredTemperature;  // 추가: desiredTemperature 변수 선언
 float humidity;  // 추가: humidity 변수 선언
 bool Tempflag;
@@ -42,8 +49,8 @@ unsigned long alarmcurrent;
 unsigned long currentTime;
 unsigned long exTF;
 //핀설정
-int windowServoPin = 9;             // 창문 여닫이 서보모터가 연결된 핀
-int buzzerPin = 8;                 // 피에조 부저가 연결된 핀
+
+
 int irSensorValue; // irSensorValue 변수 선언 
 //방범상태
 bool Security = true;
@@ -52,20 +59,26 @@ bool AlarmFlag = false;
 
 
 void setup(){
-  // put your setup code here, to run once:
+  //OUTPUT 핀모드 세팅
   pinMode(VentmotorPin, OUTPUT); // 환풍기 dc모터
   pinMode(buzzerPin, OUTPUT);    // 피에조 부저
+  //통신세팅
   Serial.begin(9600);
   BTserial.begin(9600);
+  AS.begin(9600);
+  //LCD 세팅
   lcd.begin(16, 2);
   lcd.clear();
   lcd.init();
   lcd.backlight();
+  //dht setting
   dht.begin();
+  //softwareinterupt setting
   attachInterrupt(digitalPinToInterrupt(2),SoftwareISR,FALLING);
-  attachInterrupt(digitalPinToInterrupt(0),SoftwareISRRx,FALLING);
+  attachInterrupt(digitalPinToInterrupt(ASRx),SoftwareISRRx,FALLING);
 }
-w
+
+
 void loop(){
   Serial.println("loop");
   humidity = dht.readHumidity();    
@@ -75,12 +88,14 @@ void loop(){
 
   //두번째 아두이노로 온습도 희망온도 전송 3초마다
   if(exTF> millis()-3000){
-    Serial.print(currentTemperature);
-    Serial.print(",");
-    Serial.print(humidity);
-    Serial.print(",");
-    Serial.println(desiredTemperature);
+    AS.print(",");
+    AS.print(currentTemperature);
+    AS.print(",");
+    AS.print(humidity);
+    AS.print(",");
+    AS.println(desiredTemperature);
   }
+
   //LCD온습도 출력
   displayTemperatureAndHumidity(currentTemperature,humidity);
 
@@ -113,8 +128,7 @@ void loop(){
               actstartTime = millis();
               AlarmFlag = true;
               alarmStart = millis();  // 현재 시간 기록
-            } 
-
+            }
             if(AlarmFlag == true){
               alarmcurrent = millis();
               activateAlarm();  // 알람작동
@@ -135,13 +149,10 @@ void loop(){
       }
     }
   }
-  Serial.print("check data: " );
-  Serial.println(data);
 
   if( !(data == 'y') ){
     if(data == 'a'){
     Security = !Security;
-    Serial.println(Security);
     noTone(buzzerPin);
     data = 'y';
     }
@@ -152,7 +163,6 @@ void loop(){
     //환풍기 AUTO ON OFF
     else if(data == 'c'){ventflag = 1;}
     else if(data == 'd'){
-      Serial.println("check d");
       digitalWrite(VentmotorPin, HIGH);
       ventflag = 0;
       data = 'y';
@@ -172,26 +182,23 @@ void loop(){
     }
     else if(data == 'h'){
       Tempflag = 1;
-      Serial.print("h");
       data = 'y';
     }
     else if(Serial.find(".")){
       desiredTemperature = data;
-      Serial.println(desiredTemperature);
       Tempflag = 1;
-      Serial.print("z");
       data = 'y';
     }
+    //x를 받으면 현재온습도 앱으로 전송
     else if(data == 'x'){
       BTserial.print(currentTemperature);
       BTserial.println("'C");
       BTserial.print(humidity);
       BTserial.println("%");
-      Serial.print("x");
       data = 'y';
     }
     else{
-      Serial.print(data);
+      AS.print(data);
       data = 'y';
     }
   }
@@ -199,11 +206,9 @@ void loop(){
 }
 
 void SoftwareISRRx(){
-  data;
-  while(BTserial.available()){
-    data = BTserial.read();
+  while(AS.available()){
+    updateTemp = AS.read();
   }
-  updateTemp = data;
 }
 
 void SoftwareISR(){
@@ -231,20 +236,25 @@ void displayTemperatureAndHumidity(float currentTemperature,float humidity ){
 }
 
 void activateAlarm(){
-  if(alarmcurrent - actstartTime < 2000){  // 현재 시간 기록 8000 ){
-    Serial.println("activeAlram");
-    tone(buzzerPin, 500); 
+  if(alarmcurrent - actstartTime < 1500){  // 현재 시간 기록 8000 ){
+    tone(buzzerPin, 800); 
   }
-  else if(alarmcurrent - actstartTime < 4000){
+  else if(alarmcurrent - actstartTime < 3000){
     noTone(buzzerPin); 
   }
+  else if(alarmcurrent - actstartTime < 4500){
+    tone(buzzerPin, 1000); 
+  }
   else if(alarmcurrent - actstartTime < 6000){
-    tone(buzzerPin, 700); 
+    noTone(buzzerPin); 
+  }
+  else if(alarmcurrent - actstartTime < 7500){
+    tone(buzzerPin, 1000); 
   }
   else if(alarmcurrent - actstartTime < 8000){
     noTone(buzzerPin); 
   }
-  else if(alarmcurrent - actstartTime < 15000){
+  else if(alarmcurrent - actstartTime < 10000){
     tone(buzzerPin, 1000); 
   }
   else{
@@ -257,9 +267,7 @@ void activateAlarm(){
 //방범장치 함수
 void lightAlarm(){
   startTimelight = millis();
-  Serial.println("liht arlded: ");
   while (millis() - startTimelight < 1000){
-    Serial.println("lightAlarm");
     tone(buzzerPin, 200);
     delay(500);
     noTone(buzzerPin);

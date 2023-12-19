@@ -2,13 +2,17 @@
 #include <Wire.h>
 #include "Arduino.h"
 #include <Servo.h>
-#define boilerLEDPin 6
-#define lightLEDPin 10
+
+#define airConledPin 7
+#define lightLEDPin 8
 #define airConditionerServoPin 9
-#define airConledPin 12
+#define boilerLEDPin 10
+#define ASRx 11
+#define ASTx 12
+
+SoftwareSerial AS(ASRx,ASTx);//ArduinoSerial
 
 Servo airConditionerServo;
-
 float desiredTemperature;  
 
 //전역변수
@@ -23,12 +27,12 @@ unsigned long boilerstart;
 bool tempflag= 0;
 bool boilflag=0;
 bool airconflag =0;
+char data;
 
 
 void setup() {
-  // put your setup code here, to run once:
-  Serial.begin(9600);
-  attachInterrupt(digitalPinToInterrupt(0),SoftwareISR,FALLING);
+  AS.begin(9600);
+  attachInterrupt(digitalPinToInterrupt(ASRx),SoftwareISR,FALLING);
 }
 
 void loop() {
@@ -66,26 +70,27 @@ void loop() {
     }
     //보일러 밝기변화 반영 위의 엘스문 안에? 아니면 따로?
   }
-}
 
-void SoftwareISR(){
-  while(Serial.available()){
-    char data = Serial.read();
-    //2번아두이노
+  //첫번째 아두이노의 데이터처리
+  //2번아두이노
+  if(!(data=='y')){
     if(data == 'h'){
-      int tempflag = 1;
+      tempflag = 1;
+      data = 'y';
     }
     else if(data == 'i'){
       digitalWrite(airConledPin, LOW);
       airConditionerServo.attach(airConditionerServoPin);
       airConditionerServo.write(0);
-      delay(500);
+      delay(200);
       airConditionerServo.detach();
       tempflag = 0;
+      data = 'y';
     }
     else if(data == 'j'){
       analogWrite(boilerLEDPin, 0);  //보일러 강제종료
       tempflag = 0;
+      data = 'y';
     }
     else if(data == 'k'){
       analogWrite(airConledPin, 255);
@@ -94,26 +99,46 @@ void SoftwareISR(){
       delay(500);
       airConditionerServo.detach();
       tempflag = 0;
+      data = 'y';
     }//에어컨 터보
     else if(data == 'l'){
       analogWrite(boilerLEDPin, 255);  //보일러 강제종료
       int tempflag = 0;
+      data = 'y';
     }//보일러 터보
     else if(data == 'm'){}
     else if(data == 'n'){}
     else if(data == 'o'){}
-
     //조명
-    else if(data == '0'){analogWrite(lightLEDPin,LOW);}//off
-    else if(data == '1'){analogWrite(lightLEDPin,32);}//off
-    else if(data == '2'){analogWrite(lightLEDPin,64);}//off
-    else if(data == '3'){analogWrite(lightLEDPin,128);}//off
-    else if(data == '4'){analogWrite(lightLEDPin,196);}//off
-    else if(data == '5'){analogWrite(lightLEDPin,255);}//off
+    else if(data == '0'){
+      analogWrite(lightLEDPin,LOW);
+      data = 'y';
+      }//off
+    else if(data == '1'){
+      analogWrite(lightLEDPin,32);
+      data = 'y';
+      }//off
+    else if(data == '2'){
+      analogWrite(lightLEDPin,64);
+      data = 'y';
+      }//off
+    else if(data == '3'){
+      analogWrite(lightLEDPin,128);
+      data = 'y';
+      }//off
+    else if(data == '4'){
+      analogWrite(lightLEDPin,196);
+      data = 'y';
+      }//off
+    else if(data == '5'){
+      analogWrite(lightLEDPin,255);
+      data = 'y';
+      }//off
     else if(data == 'z'){
-      Tempflag =1;
+      tempflag =1;
+      data = 'y';
     }
-    else if(Serial.find(",")){
+    else(data.find(",")){
       float state[3];
       state[0] = Serial.parseFloat();
       state[1] = Serial.parseFloat();
@@ -121,8 +146,13 @@ void SoftwareISR(){
       currentTemp = state[0];
       humidity = state[1];
       desiredTemperature=state[2];
-      Serial.println(state);
     }
+  }
+}
+
+void SoftwareISR(){
+  while(Serial.available()){
+    data = Serial.read();
   }
 }
 
