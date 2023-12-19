@@ -65,7 +65,7 @@ void setup(){
   attachInterrupt(digitalPinToInterrupt(2),SoftwareISR,FALLING);
   attachInterrupt(digitalPinToInterrupt(0),SoftwareISRRx,FALLING);
 }
-w
+
 void loop(){
   Serial.println("loop");
   humidity = dht.readHumidity();    
