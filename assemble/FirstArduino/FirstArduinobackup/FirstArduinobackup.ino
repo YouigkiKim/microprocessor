@@ -65,7 +65,7 @@ void setup(){
   attachInterrupt(digitalPinToInterrupt(2),SoftwareISR,FALLING);
   attachInterrupt(digitalPinToInterrupt(0),SoftwareISRRx,FALLING);
 }
-w
+
 void loop(){
   Serial.println("loop");
   humidity = dht.readHumidity();    
@@ -195,7 +195,9 @@ void loop(){
       data = 'y';
     }
   }
-  delay(1000);
+  Serial.print("after: ");
+  Serial.println(data);
+  Serial.println("loop");
 }
 
 void SoftwareISRRx(){
@@ -209,7 +211,6 @@ void SoftwareISRRx(){
 void SoftwareISR(){
   while(BTserial.available()){
     data = BTserial.read();
-    break;
   }
 }
 
@@ -233,13 +234,13 @@ void displayTemperatureAndHumidity(float currentTemperature,float humidity ){
 void activateAlarm(){
   if(alarmcurrent - actstartTime < 2000){  // 현재 시간 기록 8000 ){
     Serial.println("activeAlram");
-    tone(buzzerPin, 500); 
+    tone(buzzerPin, 700); 
   }
   else if(alarmcurrent - actstartTime < 4000){
     noTone(buzzerPin); 
   }
   else if(alarmcurrent - actstartTime < 6000){
-    tone(buzzerPin, 700); 
+    tone(buzzerPin, 1000); 
   }
   else if(alarmcurrent - actstartTime < 8000){
     noTone(buzzerPin); 

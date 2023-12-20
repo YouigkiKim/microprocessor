@@ -216,10 +216,7 @@ void loop(){
       }
     }
   }
-  closeWindow();
-
-  delay(3000);
-  openWindow();
+  Serial.print(data);
   Serial.println("loop");
 }
 
@@ -232,7 +229,6 @@ void SoftwareISR(){
   while(BTserial.available()){
     data = BTserial.read();
   }
-  Serial.println(data);
 }
 
 //LCD와 시리얼 모니터에 현재 온습도 표현 함수
