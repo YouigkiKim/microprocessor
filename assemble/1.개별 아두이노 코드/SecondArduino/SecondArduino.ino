@@ -48,10 +48,8 @@ void loop() {
         startTempdiff = desiredTemp - currentTemp;
         updateTemp = currentTemp;
       }
-      //온도차에 따라 온도감소량과 밝기차이를 구현하는게 목표
       else{
         updateTemp = setBoilerTemperature(desiredTemp,updateTemp, Timediff);
-        //setBoilerBrightness(desiredTemp, currentTemp, boilerstart);
         Timediff = millis();
       }
     }
@@ -68,11 +66,8 @@ void loop() {
         Timediff = millis();
       }
     }
-    //보일러 밝기변화 반영 위의 엘스문 안에? 아니면 따로?
   }
-
-  //첫번째 아두이노의 데이터처리
-  //2번아두이노
+  //2번아두이노데이터처리
   if(!(data=='y')){
     if(data == 'h'){
       tempflag = 1;
@@ -138,7 +133,7 @@ void loop() {
       tempflag =1;
       data = 'y';
     }
-    else(data.find(",")){
+    else{
       float state[3];
       state[0] = Serial.parseFloat();
       state[1] = Serial.parseFloat();
