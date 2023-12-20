@@ -17,7 +17,7 @@
 SoftwareSerial AS(ASRx,ASTx);//ArduinoSerial
 Stepper stepper(STEPS, 8, 10, 9, 11);
 
-Servo airConditionerServo;1ㅂ2ㅈ
+Servo airConditionerServo;
 float desiredTemperature;  
 
 //전역변수
@@ -90,7 +90,7 @@ void loop() {
       autoflag = true;
     }
     else if(data == 'n'){
-      autoflag = flase;
+      autoflag = false;
       ManualCurtainup();
     }
     else if(data == 'o'){
@@ -131,7 +131,6 @@ void loop() {
       state[0] = AS.parseFloat();
       state[1] = AS.parseFloat();
       state[2] = AS.parseFloat();
-      Serial.println(state)
       currentTemp = state[0];
       humidity = state[1];
       desiredTemperature=state[2];
@@ -188,7 +187,7 @@ void loop() {
 }
 
 void SoftwareISR(){
-  while(SA.available()){
+  while(AS.available()){
     data = AS.read();
   }
 }
@@ -221,9 +220,10 @@ float setBoilerTemperature(float desiredTemp, float currentTemperature, float St
 }
 
 //커튼함수
-void Curtainup() {
+void Curtainup(){
+  uint8_t i=0;
   if (curtain_flag == 0){
-    for i=1:cycle:1++{
+    for(i=1;i<cycle;i++){
       stepper.step(STEPS);
     }
     curtain_flag = 1;
@@ -231,23 +231,26 @@ void Curtainup() {
 }
 
 void Curtaindown() {
+  uint8_t i=0;
   if (curtain_flag == 1){
     // 역방향으로 3초 동안 회전
-    for i=1:cycle:1++{
+    for (i=1;i<cycle;i++){
       stepper.step(-STEPS);
     }
     curtain_flag = 0;
   }
 }
 void ManualCurtainup() {
-  for i=1:cycle:1++{
+  uint8_t i=0;
+  for (i=1;i<cycle;i++){
     stepper.step(STEPS);
   }
   curtain_flag = 1;
 }
 void ManualCurtaindown() {
   // 역방향으로 3초 동안 회전
-  for i=1:cycle:1++{
+  uint8_t i=0;
+  for (i=1;i<cycle;i++){
     stepper.step(-STEPS);
   }
   curtain_flag = 0;

@@ -80,6 +80,7 @@ void setup(){
 
 
 void loop(){
+  Serial.println("loop start");
   humidity = dht.readHumidity();    
   currentTemperature = dht.readTemperature();
   irSensorValue = analogRead(2);
@@ -141,14 +142,17 @@ void loop(){
       BTserial.println("%");
       data = 'y';
     }
+
     else{
       // AS.print(data);
       data = 'y' ;
     }
   }
 
-  //두번째 아두이노로 온습도 희망온도 전송 3초마다
+  //두번째 아두이노로 온습도 희망온도 전송 10초마다
   if(exTF> millis()-10000){
+    // String state = floatToString(currentTemperature)+","+floatToString(humidity)+","+floatToString(desiredTemperature);
+    // AS.println(state);
     AS.print(",");
     AS.print(currentTemperature);
     AS.print(",");
@@ -220,6 +224,8 @@ void SoftwareISR(){
   while(BTserial.available()){
     data = BTserial.read();
   }
+  Serial.print("data: ");
+  Serial.println(data);
 }
 
 //LCD와 시리얼 모니터에 현재 온습도 표현 함수
