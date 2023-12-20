@@ -1,11 +1,11 @@
 #include <SoftwareSerial.h>
 
-SoftwareSerial BTserial(4,5); // RX, TX
+SoftwareSerial BTserial(2,3); // RX, TX
 
 
 void setup() {
-  Serial.begin(9600);
-  BTserial.begin(9600);
+  Serial.begin(38400);
+  BTserial.begin(38400);
 }
 
 void loop() {

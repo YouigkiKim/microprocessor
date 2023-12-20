@@ -18,7 +18,7 @@
 #define DHTTYPE DHT22     // DHT 센서의 타입 (DHT22 또는 DHT11)
 
 DHT dht(DHTPIN, DHTTYPE);
-Servo windowServo ;
+Servo windowServo;
 SoftwareSerial BTserial(2,3);
 SoftwareSerial AS(ASRx,ASTx);
 LiquidCrystal_I2C lcd(0x27, 16, 2);  // I2C 주소 0x27에 연결된 16x2 LCD
@@ -31,7 +31,7 @@ bool ventflag = 0;
 float desiredTemperature;  // 추가: desiredTemperature 변수 선언
 float humidity;  // 추가: humidity 변수 선언
 bool Tempflag;
-char data;
+char data = 'y';
 
 //창문변수들
 //창문상태
@@ -57,6 +57,8 @@ bool Security = true;
 bool SecureFlag;
 bool AlarmFlag = false;
 
+float lastRx;
+
 
 void setup(){
   //OUTPUT 핀모드 세팅
@@ -65,16 +67,16 @@ void setup(){
   //통신세팅
   Serial.begin(9600);
   BTserial.begin(9600);
-  AS.begin(9600);
-  //LCD 세팅
-  lcd.begin(16, 2);
-  lcd.clear();
-  lcd.init();
-  lcd.backlight();
-  //dht setting
-  dht.begin();
+  // AS.begin(9600);
+  // //LCD 세팅
+  // lcd.begin(16, 2);
+  // lcd.clear();
+  // lcd.init();
+  // lcd.backlight();
+  // //dht setting
+  // dht.begin();
   //softwareinterupt setting
-  attachInterrupt(digitalPinToInterrupt(2),SoftwareISR,FALLING);
+  attachInterrupt(digitalPinToInterrupt(BTRx),SoftwareISR,RISING);
   // attachInterrupt(digitalPinToInterrupt(ASRx),SoftwareISRRx,FALLING);
 }
 
@@ -84,27 +86,23 @@ void loop(){
   currentTemperature = dht.readTemperature();
   //Serial.print(currentTemperature);
   irSensorValue = analogRead(2);
-  Serial.println(data);
+
 
   if( data =! 'y'){
-
     if(data == 'a'){
     Security = !Security;
     noTone(buzzerPin);
     data = 'y';
     }
-
     else if(data == 'b'){
       Security = false;
       data = 'y';
     }
-
     //환풍기 AUTO ON OFF
     else if(data == 'c'){
       ventflag = 1;
-      data='y';
+      data ='y';
     }
-
     else if(data == 'd'){
       digitalWrite(VentmotorPin, HIGH);
       ventflag = 0;
@@ -149,7 +147,7 @@ void loop(){
     }
     else{
       // AS.print(data);
-      data = 'y';
+      data = 'y' ;
     }
   }
 
@@ -163,8 +161,8 @@ void loop(){
   //   AS.println(desiredTemperature);
   // }
 
-  //LCD온습도 출력
-  displayTemperatureAndHumidity(currentTemperature,humidity);
+  // LCD온습도 출력
+  // displayTemperatureAndHumidity(currentTemperature,humidity);
 
   //환풍기제어
   if (ventflag == 1 ) {
@@ -187,7 +185,6 @@ void loop(){
           startTime = millis();
           SecureFlag = true;
         }
-
         unsigned long currentTime = millis();
         if(SecureFlag == true){
           if(currentTime - 5000 > startTime){
@@ -206,7 +203,6 @@ void loop(){
           }
         }
       } 
-      
       else{
         startTime = 0;
         currentTime = 0;
@@ -216,8 +212,10 @@ void loop(){
       }
     }
   }
+
   Serial.print(data);
   Serial.println("loop");
+  delay(1000);
 }
 
 // void SoftwareISRRx(){
