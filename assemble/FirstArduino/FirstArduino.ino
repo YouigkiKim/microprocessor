@@ -27,7 +27,7 @@ float currentTemperature;
 float updateTemp;
 int brightness; //보일러LED 밝기 변수 선언
 bool ventState;
-bool ventflag = 0; 
+bool ventflag = 0;
 float desiredTemperature;  // 추가: desiredTemperature 변수 선언
 float humidity;  // 추가: humidity 변수 선언
 bool Tempflag;
@@ -48,6 +48,7 @@ unsigned long actstartTime;
 unsigned long alarmcurrent;
 unsigned long currentTime;
 unsigned long exTF;
+unsigned long LT = 0;
 //핀설정
 
 
@@ -147,7 +148,7 @@ void loop(){
   }
 
   //두번째 아두이노로 온습도 희망온도 전송 3초마다
-  if(exTF> millis()-3000){
+  if(exTF> millis()-10000){
     AS.print(",");
     AS.print(currentTemperature);
     AS.print(",");
@@ -160,7 +161,7 @@ void loop(){
   if(AS.available()){
     updateTemp = AS.read();
   }
-  
+
   displayTemperatureAndHumidity(currentTemperature,humidity);
 
   //환풍기제어

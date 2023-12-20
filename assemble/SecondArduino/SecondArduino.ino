@@ -12,7 +12,7 @@
 
 SoftwareSerial AS(ASRx,ASTx);//ArduinoSerial
 
-Servo airConditionerServo;
+Servo airConditionerServo;1ㅂ2ㅈ
 float desiredTemperature;  
 
 //전역변수
