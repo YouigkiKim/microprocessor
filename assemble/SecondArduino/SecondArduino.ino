@@ -2,15 +2,20 @@
 #include <Wire.h>
 #include "Arduino.h"
 #include <Servo.h>
+#include <Stepper.h>
 
+#define Cds_Photoresistor_PIN A0
 #define airConledPin 7
 #define lightLEDPin 8
 #define airConditionerServoPin 9
 #define boilerLEDPin 10
-#define ASRx 11
-#define ASTx 12
+#define ASRx 12
+#define ASTx 13
+
+#define STEPS 2048
 
 SoftwareSerial AS(ASRx,ASTx);//ArduinoSerial
+Stepper stepper(STEPS, 8, 10, 9, 11);
 
 Servo airConditionerServo;1ㅂ2ㅈ
 float desiredTemperature;  
@@ -24,7 +29,10 @@ float startTempdiff ;
 float desiredTemp;
 float lastTx=0;
 unsigned long boilerstart;
+
 //상태변수
+int curtain_flag = 0;
+bool autoflag;
 bool tempflag= 0;
 bool boilflag=0;
 bool airconflag =0;
@@ -33,46 +41,12 @@ char data='y';
 
 void setup() {
   AS.begin(9600);
+  stepper.setSpeed(12);
   attachInterrupt(digitalPinToInterrupt(ASRx),SoftwareISR,RISING); //Falling은 비트손실로 인해 데이터전송이 원활하지 않은듯함
 }
 
 void loop() {
-  //온도 자동조절 확인
-  if(tempflag == 1){
-    //boilerflag로 보일러 작동시작유무 확인
-    if(desiredTemp > currentTemp){
-      if(boilflag == 0){
-        boilflag = 1;
-        analogWrite(boilerLEDPin, 255);
-        boilerstart = millis();
-        startTempdiff = desiredTemp - currentTemp;
-        updateTemp = currentTemp;
-      }
-      else{
-        updateTemp = setBoilerTemperature(desiredTemp,updateTemp, Timediff);
-        Timediff = millis();
-        if(Timediff >= lastTx+2000){
-          AS.print(updateTemp);
-        }
-      }
-    }
-    //에어컨 작동
-    else if(desiredTemp < currentTemp){
-      if(airconflag ==0){
-        airconflag =1;
-        autoActivateAirConditioner();
-        boilerstart = millis();
-        startTempdiff = currentTemp - desiredTemp;
-      }
-      else{
-        updateTemp = setAirconTemperature(desiredTemp,currentTemp,Timediff);
-        Timediff = millis();
-        if(Timediff >= lastTx+2000){
-          AS.print(updateTemp);
-        }
-      }
-    }
-  }
+
   //2번아두이노데이터처리
   if(!(data=='y')){
     if(data == 'h'){
@@ -143,13 +117,59 @@ void loop() {
     }
     else{
       float state[3];
-      state[0] = Serial.parseFloat();
-      state[1] = Serial.parseFloat();
-      state[2] = Serial.parseFloat();
+      state[0] = AS.parseFloat();
+      state[1] = AS.parseFloat();
+      state[2] = AS.parseFloat();
       currentTemp = state[0];
       humidity = state[1];
       desiredTemperature=state[2];
     }
+  }
+
+  //온도 자동조절 확인
+  if(tempflag == 1){
+    //boilerflag로 보일러 작동시작유무 확인
+    if(desiredTemp > currentTemp){
+      if(boilflag == 0){
+        boilflag = 1;
+        analogWrite(boilerLEDPin, 255);
+        boilerstart = millis();
+        startTempdiff = desiredTemp - currentTemp;
+        updateTemp = currentTemp;
+      }
+      else{
+        updateTemp = setBoilerTemperature(desiredTemp,updateTemp, Timediff);
+        Timediff = millis();
+        if(Timediff >= lastTx+5000){
+          AS.print(updateTemp);
+        }
+      }
+    }
+    //에어컨 작동
+    else if(desiredTemp < currentTemp){
+      if(airconflag ==0){
+        airconflag =1;
+        autoActivateAirConditioner();
+        boilerstart = millis();
+        startTempdiff = currentTemp - desiredTemp;
+      }
+      else{
+        updateTemp = setAirconTemperature(desiredTemp,currentTemp,Timediff);
+        Timediff = millis();
+        if(Timediff >= lastTx+5000){
+          AS.print(updateTemp);
+        }
+      }
+    }
+  }
+
+  //커튼 제어
+  uint16_t aValue = analogRead(Cds_Photoresistor_PIN);
+  if (aValue < 400){
+    Curtainup();
+  }
+  else {
+    Curtaindown();
   }
 }
 
@@ -165,13 +185,18 @@ void autoActivateAirConditioner() {
   delay(100);
   airConditionerServo.write(90);
 }
-
 void offAirConditioner() {
   digitalWrite(airConledPin,LOW);
   delay(100);
   airConditionerServo.write(0);
 }
+float setAirconTemperature(float desiredTemp, float currentTemperature, float StartTime){
+  float diffTemp = desiredTemp - currentTemperature;
+  updateTemp = currentTemperature + diffTemp/20*(millis()-StartTime)/1000;
+  return updateTemp;
+}
 
+//보일러함수
 float setBoilerTemperature(float desiredTemp, float currentTemperature, float StartTime){
   float diffTemp = desiredTemp - currentTemperature;
   updateTemp = currentTemperature + diffTemp/20*(millis()-StartTime)/1000;
@@ -181,8 +206,31 @@ float setBoilerTemperature(float desiredTemp, float currentTemperature, float St
   return updateTemp;
 }
 
-float setAirconTemperature(float desiredTemp, float currentTemperature, float StartTime){
-  float diffTemp = desiredTemp - currentTemperature;
-  updateTemp = currentTemperature + diffTemp/20*(millis()-StartTime)/1000;
-  return updateTemp;
+//커튼함수
+void Curtainup() {
+  Serial.print("curtain_flag : ");
+  Serial.println(curtain_flag);
+
+  if (curtain_flag == 0){
+    stepper.step(STEPS);
+    stepper.step(STEPS);
+    stepper.step(STEPS);
+    stepper.step(STEPS);
+    delay(1000);
+    curtain_flag = 1;
+  }
+  Serial.print("after curtain_flag : ");
+  Serial.println(curtain_flag);
+}
+
+void Curtaindown() {
+  if (curtain_flag == 1){
+    // 역방향으로 3초 동안 회전
+    stepper.step(-STEPS);
+    stepper.step(-STEPS);
+    stepper.step(-STEPS);
+    stepper.step(-STEPS);
+    delay(1000);
+    curtain_flag = 0;
+  }
 }

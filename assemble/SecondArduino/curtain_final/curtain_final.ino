@@ -56,17 +56,14 @@ void Curtaindown() {
 }
 
 void loop() {
+
   uint16_t aValue = analogRead(Cds_Photoresistor_PIN);
-  Serial.print("Cds : ");
-  Serial.println(aValue);
-  delay(100);
+
   if (aValue < 400){
     Curtainup();
-
   }
   else {
     Curtaindown();
-
   }
 
 }

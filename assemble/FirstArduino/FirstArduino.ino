@@ -213,9 +213,6 @@ void loop(){
     }
   }
 
-  Serial.print(data);
-  Serial.println("loop");
-  delay(1000);
 }
 
 
