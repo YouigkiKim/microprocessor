@@ -32,6 +32,7 @@ unsigned long boilerstart;
 
 //상태변수
 int curtain_flag = 0;
+int cycle = 4;
 bool autoflag;
 bool tempflag= 0;
 bool boilflag=0;
@@ -83,9 +84,19 @@ void loop() {
       data = 'y';
     }
     //보일러 터보
-    else if(data == 'm'){}
-    else if(data == 'n'){}
-    else if(data == 'o'){}
+
+    //커튼 제어
+    else if(data == 'm'){
+      autoflag = true;
+    }
+    else if(data == 'n'){
+      autoflag = flase;
+      ManualCurtainup();
+    }
+    else if(data == 'o'){
+      autoflag = false;
+      ManualCurtaindown();
+    }
     //조명
     else if(data == '0'){
       analogWrite(lightLEDPin,LOW);
@@ -165,17 +176,19 @@ void loop() {
 
   //커튼 제어
   uint16_t aValue = analogRead(Cds_Photoresistor_PIN);
-  if (aValue < 400){
-    Curtainup();
-  }
-  else {
-    Curtaindown();
+  if(autoflag == true){
+    if (aValue < 400){
+      Curtainup();
+    }
+    else {
+      Curtaindown();
+    }
   }
 }
 
 void SoftwareISR(){
-  while(Serial.available()){
-    data = Serial.read();
+  while(SA.available()){
+    data = AS.read();
   }
 }
 
@@ -208,29 +221,33 @@ float setBoilerTemperature(float desiredTemp, float currentTemperature, float St
 
 //커튼함수
 void Curtainup() {
-  Serial.print("curtain_flag : ");
-  Serial.println(curtain_flag);
-
   if (curtain_flag == 0){
-    stepper.step(STEPS);
-    stepper.step(STEPS);
-    stepper.step(STEPS);
-    stepper.step(STEPS);
-    delay(1000);
+    for i=1:cycle:1++{
+      stepper.step(STEPS);
+    }
     curtain_flag = 1;
   }
-  Serial.print("after curtain_flag : ");
-  Serial.println(curtain_flag);
 }
 
 void Curtaindown() {
   if (curtain_flag == 1){
     // 역방향으로 3초 동안 회전
-    stepper.step(-STEPS);
-    stepper.step(-STEPS);
-    stepper.step(-STEPS);
-    stepper.step(-STEPS);
-    delay(1000);
+    for i=1:cycle:1++{
+      stepper.step(-STEPS);
+    }
     curtain_flag = 0;
   }
+}
+void ManualCurtainup() {
+  for i=1:cycle:1++{
+    stepper.step(STEPS);
+  }
+  curtain_flag = 1;
+}
+void ManualCurtaindown() {
+  // 역방향으로 3초 동안 회전
+  for i=1:cycle:1++{
+    stepper.step(-STEPS);
+  }
+  curtain_flag = 0;
 }
