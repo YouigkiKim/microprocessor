@@ -22,21 +22,21 @@ float updateTemp;
 float Timediff = 0;
 float startTempdiff ;
 float desiredTemp;
+float lastTx=0;
 unsigned long boilerstart;
 //상태변수
 bool tempflag= 0;
 bool boilflag=0;
 bool airconflag =0;
-char data;
+char data='y';
 
 
 void setup() {
   AS.begin(9600);
-  attachInterrupt(digitalPinToInterrupt(ASRx),SoftwareISR,FALLING);
+  attachInterrupt(digitalPinToInterrupt(ASRx),SoftwareISR,RISING); //Falling은 비트손실로 인해 데이터전송이 원활하지 않은듯함
 }
 
 void loop() {
-  // put your main code here, to run repeatedly:
   //온도 자동조절 확인
   if(tempflag == 1){
     //boilerflag로 보일러 작동시작유무 확인
@@ -51,6 +51,9 @@ void loop() {
       else{
         updateTemp = setBoilerTemperature(desiredTemp,updateTemp, Timediff);
         Timediff = millis();
+        if(Timediff >= lastTx+2000){
+          AS.print(updateTemp);
+        }
       }
     }
     //에어컨 작동
@@ -64,6 +67,9 @@ void loop() {
       else{
         updateTemp = setAirconTemperature(desiredTemp,currentTemp,Timediff);
         Timediff = millis();
+        if(Timediff >= lastTx+2000){
+          AS.print(updateTemp);
+        }
       }
     }
   }
@@ -95,12 +101,14 @@ void loop() {
       airConditionerServo.detach();
       tempflag = 0;
       data = 'y';
-    }//에어컨 터보
+    }
+    //에어컨 터보
     else if(data == 'l'){
       analogWrite(boilerLEDPin, 255);  //보일러 강제종료
       int tempflag = 0;
       data = 'y';
-    }//보일러 터보
+    }
+    //보일러 터보
     else if(data == 'm'){}
     else if(data == 'n'){}
     else if(data == 'o'){}

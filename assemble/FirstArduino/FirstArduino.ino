@@ -57,8 +57,6 @@ bool Security = true;
 bool SecureFlag;
 bool AlarmFlag = false;
 
-float lastRx;
-
 
 void setup(){
   //OUTPUT 핀모드 세팅
@@ -67,26 +65,23 @@ void setup(){
   //통신세팅
   Serial.begin(9600);
   BTserial.begin(9600);
-  // AS.begin(9600);
-  // //LCD 세팅
-  // lcd.begin(16, 2);
-  // lcd.clear();
-  // lcd.init();
-  // lcd.backlight();
-  // //dht setting
-  // dht.begin();
+  AS.begin(9600);
+  //LCD 세팅
+  lcd.begin(16, 2);
+  lcd.clear();
+  lcd.init();
+  lcd.backlight();
+  //dht setting
+  dht.begin();
   //softwareinterupt setting
   attachInterrupt(digitalPinToInterrupt(BTRx),SoftwareISR,RISING);
-  // attachInterrupt(digitalPinToInterrupt(ASRx),SoftwareISRRx,FALLING);
 }
 
 
 void loop(){
   humidity = dht.readHumidity();    
   currentTemperature = dht.readTemperature();
-  //Serial.print(currentTemperature);
   irSensorValue = analogRead(2);
-
 
   if( data =! 'y'){
     if(data == 'a'){
@@ -131,11 +126,11 @@ void loop(){
       data = 'y';
     }
 
-    // else if(Serial.find(".")){
-    //   desiredTemperature = data;
-    //   Tempflag = 1;
-    //   data = 'y';
-    // }
+    else if(Serial.find(".")){
+      desiredTemperature = data;
+      Tempflag = 1;
+      data = 'y';
+    }
 
     //x를 받으면 현재온습도 앱으로 전송
     else if(data == 'x'){
@@ -152,17 +147,21 @@ void loop(){
   }
 
   //두번째 아두이노로 온습도 희망온도 전송 3초마다
-  // if(exTF> millis()-3000){
-  //   AS.print(",");
-  //   AS.print(currentTemperature);
-  //   AS.print(",");
-  //   AS.print(humidity);
-  //   AS.print(",");
-  //   AS.println(desiredTemperature);
-  // }
+  if(exTF> millis()-3000){
+    AS.print(",");
+    AS.print(currentTemperature);
+    AS.print(",");
+    AS.print(humidity);
+    AS.print(",");
+    AS.println(desiredTemperature);
+  }
 
   // LCD온습도 출력
-  // displayTemperatureAndHumidity(currentTemperature,humidity);
+  if(AS.available()){
+    updateTemp = AS.read();
+  }
+  
+  displayTemperatureAndHumidity(currentTemperature,humidity);
 
   //환풍기제어
   if (ventflag == 1 ) {
@@ -218,10 +217,6 @@ void loop(){
   delay(1000);
 }
 
-// void SoftwareISRRx(){
-//   while(!(AS.available()));
-//   updateTemp = AS.read();
-// }
 
 void SoftwareISR(){
   while(BTserial.available()){
