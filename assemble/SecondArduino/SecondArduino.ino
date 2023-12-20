@@ -131,6 +131,7 @@ void loop() {
       state[0] = AS.parseFloat();
       state[1] = AS.parseFloat();
       state[2] = AS.parseFloat();
+      Serial.println(state)
       currentTemp = state[0];
       humidity = state[1];
       desiredTemperature=state[2];
