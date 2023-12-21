@@ -6,19 +6,14 @@
 
 #define Cds_Photoresistor_PIN A0
 #define airConledPin 7
-#define lightLEDPin 8
-#define airConditionerServoPin 9
-#define boilerLEDPin 10
-#define ASRx 12
-#define ASTx 13
-
+#define lightLEDPin 5
+#define airConditionerServoPin 6
+#define boilerLEDPin 3
 #define STEPS 2048
 
-SoftwareSerial AS(ASRx,ASTx);//ArduinoSerial
 Stepper stepper(STEPS, 8, 10, 9, 11);
 
 Servo airConditionerServo;
-float desiredTemperature;  
 
 //전역변수
 float humidity;
@@ -28,6 +23,8 @@ float Timediff = 0;
 float startTempdiff ;
 float desiredTemp;
 float lastTx=0;
+float diffTemp;
+float startTemp;
 unsigned long boilerstart;
 
 //상태변수
@@ -37,16 +34,27 @@ bool autoflag;
 bool tempflag= 0;
 bool boilflag=0;
 bool airconflag =0;
-char data='y';
+char data= 'y';
 
 
 void setup() {
-  AS.begin(9600);
+  Serial.begin(9600);
   stepper.setSpeed(12);
-  attachInterrupt(digitalPinToInterrupt(ASRx),SoftwareISR,RISING); //Falling은 비트손실로 인해 데이터전송이 원활하지 않은듯함
 }
 
 void loop() {
+  if(Serial.available()){
+    data = Serial.read();
+    if(data == 'z'){
+      float state[2];
+      state[0] = Serial.parseFloat();
+      state[1] = Serial.parseFloat();
+      currentTemp = state[0];
+      desiredTemp=state[1];
+      data = 'y';
+    }
+
+  }
 
   //2번아두이노데이터처리
   if(!(data=='y')){
@@ -57,21 +65,23 @@ void loop() {
     else if(data == 'i'){
       digitalWrite(airConledPin, LOW);
       airConditionerServo.attach(airConditionerServoPin);
-      airConditionerServo.write(0);
-      delay(200);
+      airConditionerServo.write(20);
+      delay(500);
       airConditionerServo.detach();
+      updateTemp = currentTemp;
       tempflag = 0;
       data = 'y';
     }
     else if(data == 'j'){
       analogWrite(boilerLEDPin, 0);  //보일러 강제종료
       tempflag = 0;
+      updateTemp = currentTemp;
       data = 'y';
     }
     else if(data == 'k'){
       analogWrite(airConledPin, 255);
       airConditionerServo.attach(airConditionerServoPin);
-      airConditionerServo.write(0);
+      airConditionerServo.write(90);
       delay(500);
       airConditionerServo.detach();
       tempflag = 0;
@@ -80,11 +90,15 @@ void loop() {
     //에어컨 터보
     else if(data == 'l'){
       analogWrite(boilerLEDPin, 255);  //보일러 강제종료
-      int tempflag = 0;
+      tempflag = 0;
       data = 'y';
     }
     //보일러 터보
-
+    else if(data =='j'){
+      analogWrite(boilerLEDPin,0);
+      tempflag = 0;
+      data = 'y';
+    }
     //커튼 제어
     else if(data == 'm'){
       autoflag = true;
@@ -122,18 +136,8 @@ void loop() {
       analogWrite(lightLEDPin,255);
       data = 'y';
       }//off
-    else if(data == 'z'){
-      tempflag =1;
-      data = 'y';
-    }
     else{
-      float state[3];
-      state[0] = AS.parseFloat();
-      state[1] = AS.parseFloat();
-      state[2] = AS.parseFloat();
-      currentTemp = state[0];
-      humidity = state[1];
-      desiredTemperature=state[2];
+      data='y';
     }
   }
 
@@ -145,30 +149,36 @@ void loop() {
         boilflag = 1;
         analogWrite(boilerLEDPin, 255);
         boilerstart = millis();
+        startTemp = currentTemp;
         startTempdiff = desiredTemp - currentTemp;
         updateTemp = currentTemp;
       }
       else{
         updateTemp = setBoilerTemperature(desiredTemp,updateTemp, Timediff);
         Timediff = millis();
-        if(Timediff >= lastTx+5000){
-          AS.print(updateTemp);
+        if(Timediff >= lastTx+3000){
+          Serial.println(updateTemp);
+          lastTx = millis();
         }
       }
     }
     //에어컨 작동
-    else if(desiredTemp < currentTemp){
-      if(airconflag ==0){
+    else {
+      if(airconflag == 0){
         airconflag =1;
         autoActivateAirConditioner();
         boilerstart = millis();
-        startTempdiff = currentTemp - desiredTemp;
+        startTemp = currentTemp;
+        updateTemp = currentTemp;
+        startTempdiff = desiredTemp - currentTemp;
       }
       else{
+        autoActivateAirConditioner();
         updateTemp = setAirconTemperature(desiredTemp,currentTemp,Timediff);
         Timediff = millis();
-        if(Timediff >= lastTx+5000){
-          AS.print(updateTemp);
+        if(Timediff >= lastTx+3000){
+          Serial.println(updateTemp);
+          lastTx = millis();
         }
       }
     }
@@ -186,33 +196,34 @@ void loop() {
   }
 }
 
-void SoftwareISR(){
-  while(AS.available()){
-    data = AS.read();
-  }
-}
-
 // 에어컨 함수
 void autoActivateAirConditioner() {
   digitalWrite(airConledPin, HIGH);
   delay(100);
-  airConditionerServo.write(90);
+  airConditionerServo.write(30);
 }
 void offAirConditioner() {
   digitalWrite(airConledPin,LOW);
   delay(100);
   airConditionerServo.write(0);
 }
+
+// float setAirconTemperature(float desiredTemp, float currentTemperature, float StartTime){
+//   updateTemp = startTemp + startTempdiff/20*(millis()-StartTime)/1000;
+//   return updateTemp;
+// }
+
 float setAirconTemperature(float desiredTemp, float currentTemperature, float StartTime){
   float diffTemp = desiredTemp - currentTemperature;
-  updateTemp = currentTemperature + diffTemp/20*(millis()-StartTime)/1000;
+  updateTemp = currentTemperature + diffTemp/20*(millis()-StartTime)/150;
   return updateTemp;
 }
 
-//보일러함수
+
+
 float setBoilerTemperature(float desiredTemp, float currentTemperature, float StartTime){
   float diffTemp = desiredTemp - currentTemperature;
-  updateTemp = currentTemperature + diffTemp/20*(millis()-StartTime)/1000;
+  updateTemp = currentTemperature + diffTemp/20*(millis()-StartTime)/150;
   float ratio = diffTemp/startTempdiff;
   int k = map(ratio*100, 0, 100, 1, 255);
   analogWrite(boilerLEDPin, k);
@@ -242,16 +253,20 @@ void Curtaindown() {
 }
 void ManualCurtainup() {
   uint8_t i=0;
-  for (i=1;i<cycle;i++){
-    stepper.step(STEPS);
+  if(curtain_flag == 0 ){
+    for (i=1;i<cycle;i++){
+      stepper.step(STEPS);
+    }
   }
   curtain_flag = 1;
 }
 void ManualCurtaindown() {
   // 역방향으로 3초 동안 회전
   uint8_t i=0;
-  for (i=1;i<cycle;i++){
-    stepper.step(-STEPS);
+  if(curtain_flag == 1){
+    for (i=1;i<cycle;i++){
+      stepper.step(-STEPS);
+    }
   }
   curtain_flag = 0;
 }

@@ -5,6 +5,7 @@ SoftwareSerial BTserial(2,3); // RX, TX
 char data = 'y';
 float T = 21.99;
 float H = 12.12;
+String UT;
 
 
 void setup() {
@@ -14,11 +15,26 @@ void setup() {
 }
 
 void loop() {
+  // //작동함수
+  // while(BTserial.available()){
+  //   data = BTserial.read();
+  //   Serial.println(data);
+  //   if(data == 'h'){
+  //     float UT;
+  //     UT = BTserial.parseFloat();
+  //     Serial.println(UT);
+  //     data = 'y';
+  //   }
+  // }
 
-  if( Serial.available() ){
-    BTserial.write( Serial.read());
-  }
-
+  // if( Serial.available() ){
+  //   BTserial.write( Serial.read());
+  // }
+  // if(BTserial.available()){
+  //   data = BTserial.read();
+  //   Serial.println(data);
+  // }
+  Serial.println(UT);
   if(!(data == 'y')){
     if(data == 'x'){
       Serial.println("데이터 전송 시작");
@@ -34,6 +50,7 @@ void loop() {
     Serial.print("else: ");
     Serial.println(data);
     data = 'y';
+    UT = '0';
     }
   }
 
@@ -43,7 +60,13 @@ void loop() {
 void SoftwareISR(){
   while(BTserial.available()){
     data = BTserial.read();
+    UT += data;
+  
   }
+  // }
+  // else{
+  //   data = BTserial.read();
+  // }
 }
 
 
